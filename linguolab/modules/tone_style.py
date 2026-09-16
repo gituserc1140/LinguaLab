@@ -17,7 +17,7 @@ EMOTION_WORDS = {
 
 
 def _sia() -> SentimentIntensityAnalyzer | None:
-    nlp_utils._ensure_nltk_resource("sentiment/vader_lexicon", "vader_lexicon")
+    nlp_utils.ensure_nltk_resource("sentiment/vader_lexicon", "vader_lexicon")
     try:
         return SentimentIntensityAnalyzer()
     except Exception:

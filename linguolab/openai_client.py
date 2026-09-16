@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from openai import AzureOpenAI, OpenAI
-
 from linguolab.config import settings
 
 
@@ -17,6 +15,8 @@ def available() -> bool:
 
 def completion(prompt: str) -> str:
     if settings.azure_openai_endpoint and settings.azure_openai_api_key and settings.azure_openai_deployment:
+        from openai import AzureOpenAI
+
         client = AzureOpenAI(
             api_key=settings.azure_openai_api_key,
             api_version=settings.azure_openai_api_version,
@@ -30,6 +30,8 @@ def completion(prompt: str) -> str:
         return _content(response)
 
     if settings.openai_api_key:
+        from openai import OpenAI
+
         client = OpenAI(api_key=settings.openai_api_key)
         response = client.chat.completions.create(
             model=settings.openai_model,

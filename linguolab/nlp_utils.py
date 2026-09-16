@@ -13,7 +13,7 @@ _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 _WORD = re.compile(r"[A-Za-z']+")
 
 
-def _ensure_nltk_resource(path: str, package: str) -> None:
+def ensure_nltk_resource(path: str, package: str) -> None:
     try:
         nltk.data.find(path)
     except LookupError:
@@ -65,8 +65,8 @@ def spacy_doc(text: str):
 
 
 def pos_tag_tokens(text: str) -> list[tuple[str, str]]:
-    _ensure_nltk_resource("tokenizers/punkt", "punkt")
-    _ensure_nltk_resource("taggers/averaged_perceptron_tagger", "averaged_perceptron_tagger")
+    ensure_nltk_resource("tokenizers/punkt", "punkt")
+    ensure_nltk_resource("taggers/averaged_perceptron_tagger", "averaged_perceptron_tagger")
     toks = nltk.word_tokenize(text) if text.strip() else []
     if not toks:
         return []

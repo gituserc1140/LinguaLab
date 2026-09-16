@@ -30,7 +30,11 @@ def analyze(text: str) -> dict:
 
     sample_words = tokens[:8]
     ipa = {w: ipa_transcribe(w) for w in sample_words}
-    etymology = {w: etymology_lookup(w) for w in sample_words if etymology_lookup(w)}
+    etymology = {}
+    for w in sample_words:
+        value = etymology_lookup(w)
+        if value:
+            etymology[w] = value
 
     return {
         "morphology_analysis": dict(morphology),
