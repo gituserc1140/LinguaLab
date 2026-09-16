@@ -27,7 +27,7 @@ def available(provider: str = "auto") -> bool:
 
 
 def completion(prompt: str, provider: str = "auto") -> str:
-    selected = _resolve_provider(provider)
+    selected = resolve_runtime_provider(provider)
 
     if selected == "azure" and _azure_configured():
         from openai import AzureOpenAI
@@ -55,12 +55,6 @@ def completion(prompt: str, provider: str = "auto") -> str:
         )
         return _content(response)
 
-    if selected == "auto":
-        if _azure_configured():
-            return completion(prompt, provider="azure")
-        if _openai_configured():
-            return completion(prompt, provider="openai")
-
     raise RuntimeError("No OpenAI or Azure OpenAI credentials configured.")
 
 
@@ -71,6 +65,17 @@ def _resolve_provider(provider: str) -> str:
     if selected not in {"auto", "openai", "azure"}:
         raise ValueError("provider must be one of: auto, openai, azure")
     return selected
+
+
+def resolve_runtime_provider(provider: str = "auto") -> str:
+    selected = _resolve_provider(provider)
+    if selected in {"openai", "azure"}:
+        return selected
+    if _azure_configured():
+        return "azure"
+    if _openai_configured():
+        return "openai"
+    return "auto"
 
 
 def _content(response: Any) -> str:

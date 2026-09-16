@@ -1,6 +1,7 @@
 import types
 
 import linguolab.openai_client as oc
+import pytest
 
 
 class _Resp:
@@ -61,3 +62,17 @@ def test_completion_uses_azure(monkeypatch):
 
     assert oc.completion("hi") == "azure"
     assert captured["api_version"] == "2024-02-01"
+
+
+def test_invalid_provider_raises_value_error():
+    with pytest.raises(ValueError):
+        oc.available(provider="invalid-provider")
+
+
+def test_resolve_runtime_provider_prefers_configured_backend(monkeypatch):
+    monkeypatch.setattr(oc.settings, "ai_provider", "auto")
+    monkeypatch.setattr(oc.settings, "openai_api_key", "k")
+    monkeypatch.setattr(oc.settings, "azure_openai_endpoint", "https://example.azure.com")
+    monkeypatch.setattr(oc.settings, "azure_openai_api_key", "k")
+    monkeypatch.setattr(oc.settings, "azure_openai_deployment", "dep")
+    assert oc.resolve_runtime_provider("auto") == "azure"

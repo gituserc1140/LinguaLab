@@ -61,15 +61,16 @@ class LinguaLabService:
 
         if openai_client.available() and text.strip():
             try:
+                provider = openai_client.resolve_runtime_provider("auto")
                 prompt = (
                     "Return JSON with keys summarisation, simplification, tone_transformation, "
                     "rewriting, translation_comparison for this text:\n" + text
                 )
-                completion = openai_client.completion(prompt, provider="auto")
+                completion = openai_client.completion(prompt, provider=provider)
                 model_result = json.loads(completion)
                 if isinstance(model_result, dict):
                     result.update(model_result)
-                    result["provider"] = "openai"
+                    result["provider"] = provider
             except (RuntimeError, ValueError, TypeError, KeyError, ImportError, ModuleNotFoundError) as exc:
                 result["provider_error"] = str(exc)
 

@@ -70,6 +70,7 @@ If OpenAI/Azure credentials are missing, AI Workbench uses a local low-cost demo
 ## Testing
 
 ```bash
+pip install -r requirements-dev.txt
 pytest -q
 ```
 
