@@ -1,50 +1,137 @@
-"""Streamlit-based micro-app entrypoint.
+"""LinguaLab Streamlit application."""
 
-This lightweight app preserves the original repository architecture but removes
-any Weather-specific logic. It demonstrates how to gather minimal inputs from
-an end user (optional API base URL and API key) and calls api_client.fetch_data()
-as an integration point. The UI is rendered via ui.render_home().
+from __future__ import annotations
 
-Run locally:
-  pip install -r requirements.txt
-  streamlit run app.py
-"""
-
+import pandas as pd
+import plotly.express as px
 import streamlit as st
-from config import settings
-import api_client
-import ui
 
-st.set_page_config(page_title="Micro-app", layout="centered")
+from linguolab.services import LinguaLabService
 
-st.header("Micro-app Template")
-st.write("A lightweight template for building small API-driven micro-apps using Streamlit.")
 
-# allow overriding API base and API key for quick testing; they default to config values
-api_base = st.text_input("API base URL", value=settings.API_BASE_URL or "")
-api_key = st.text_input("API key (optional)", value="", type="password")
+st.set_page_config(page_title="LinguaLab", layout="wide")
+service = LinguaLabService()
 
-params_input = st.text_area("Parameters (JSON)", value='{}', help="Optional JSON to pass to fetch_data as params")
+if "theme" not in st.session_state:
+    st.session_state["theme"] = "Default"
 
-if st.button("Fetch data"):
-    # parse params safely
-    import json
+with st.sidebar:
+    st.title("LinguaLab")
+    module = st.selectbox(
+        "Choose module",
+        [
+            "Writing Analytics",
+            "Tone and Style Analysis",
+            "Literary Analysis",
+            "Linguistics Lab",
+            "Corpus Analysis",
+            "Word Explorer",
+            "AI Language Workbench",
+            "History",
+        ],
+    )
+    st.session_state["theme"] = st.radio("Theme", ["Default", "Ocean", "Mono"], index=["Default", "Ocean", "Mono"].index(st.session_state["theme"]))
 
-    try:
-        params = json.loads(params_input or "{}")
-    except Exception as exc:
-        st.error(f"Could not parse parameters as JSON: {exc}")
-        params = {}
+if st.session_state["theme"] == "Ocean":
+    st.markdown("""
+    <style>
+    .stApp { background: linear-gradient(180deg, #f5fbff 0%, #eef6ff 100%); color: #0b1f33; }
+    .stApp [data-testid="stHeader"] { background: transparent; }
+    .stApp [data-testid="stSidebar"] { background: #e6f2ff; color: #0b1f33; }
+    </style>
+    """, unsafe_allow_html=True)
+elif st.session_state["theme"] == "Mono":
+    st.markdown("""
+    <style>
+    .stApp { background: #f6f6f6; color: #1f1f1f; }
+    .stApp [data-testid="stHeader"] { background: transparent; }
+    .stApp [data-testid="stSidebar"] { background: #ebebeb; color: #1f1f1f; }
+    </style>
+    """, unsafe_allow_html=True)
 
-    # Temporary override of settings for this run (non-persistent)
-    if api_base:
-        settings.API_BASE_URL = api_base
-    if api_key:
-        # pass explicit api_key to fetch_data (preferred) and do not modify global settings
-        data = api_client.fetch_data(params=params, api_key=api_key)
-    else:
-        data = api_client.fetch_data(params=params)
+st.title("LinguaLab: Language Intelligence Platform")
+st.caption("Lightweight demo architecture with local analytics and optional OpenAI/Azure OpenAI augmentation.")
 
-    ui.render_home(data)
+if module in {
+    "Writing Analytics",
+    "Tone and Style Analysis",
+    "Literary Analysis",
+    "Linguistics Lab",
+    "AI Language Workbench",
+}:
+    text = st.text_area("Input text", height=220, placeholder="Paste text to analyse...")
+
+    if st.button("Run analysis", use_container_width=True):
+        if module == "Writing Analytics":
+            result = service.writing_analytics(text)
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Readability", result["readability"])
+            c2.metric("Vocabulary richness", result["vocabulary_richness"])
+            c3.metric("Passive ratio", result["passive_voice_detection"]["passive_ratio"])
+
+            vocab_df = pd.DataFrame(result["top_vocabulary"], columns=["word", "count"])
+            if not vocab_df.empty:
+                fig = px.bar(vocab_df, x="word", y="count", title="Top Vocabulary")
+                st.plotly_chart(fig, use_container_width=True)
+            st.json(result)
+
+        elif module == "Tone and Style Analysis":
+            result = service.tone_style(text)
+            st.metric("Formality", result["formality_score"])
+            sentiment = result["sentiment"]
+            sent_df = pd.DataFrame([sentiment]).melt(var_name="metric", value_name="value")
+            st.plotly_chart(px.bar(sent_df, x="metric", y="value", title="Sentiment"), use_container_width=True)
+            st.json(result)
+
+        elif module == "Literary Analysis":
+            result = service.literary_analysis(text)
+            st.json(result)
+            rel = pd.DataFrame(result["character_relationships"])
+            if not rel.empty:
+                st.dataframe(rel, use_container_width=True)
+
+        elif module == "Linguistics Lab":
+            result = service.linguistics_lab(text)
+            st.json(result)
+            dep = pd.DataFrame(result["dependency_trees"])
+            if not dep.empty:
+                st.dataframe(dep, use_container_width=True)
+
+        elif module == "AI Language Workbench":
+            result = service.ai_language_workbench(text)
+            st.success(f"Provider: {result['provider']}")
+            st.json(result)
+
+elif module == "Corpus Analysis":
+    docs = st.text_area(
+        "Input multiple documents (split with ---)",
+        height=260,
+        placeholder="Document 1\n---\nDocument 2\n---\nDocument 3",
+    )
+    ngram_size = st.slider("N-gram size", min_value=2, max_value=4, value=2)
+
+    if st.button("Run corpus analysis", use_container_width=True):
+        documents = [d.strip() for d in docs.split("---")]
+        result = service.corpus_analysis(documents, ngram_size=ngram_size)
+        st.json(result)
+
+        lex_df = service.corpus_lexical_dataframe(documents)
+        if not lex_df.empty:
+            st.dataframe(lex_df, use_container_width=True)
+            st.plotly_chart(
+                px.bar(lex_df, x="document", y="lexical_diversity", title="Lexical Diversity"),
+                use_container_width=True,
+            )
+
+elif module == "Word Explorer":
+    word = st.text_input("Word")
+    if st.button("Explore word", use_container_width=True):
+        result = service.word_explorer(word)
+        st.json(result)
+
 else:
-    st.info("Enter an API base URL or use the default configured in config/settings.py, provide any parameters, then click Fetch data.")
+    entries = service.history(limit=25)
+    if not entries:
+        st.info("No analysis history yet.")
+    else:
+        st.dataframe(pd.DataFrame(entries), use_container_width=True)

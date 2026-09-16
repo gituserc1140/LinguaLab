@@ -1,61 +1,93 @@
-# Micro-app template
+# LinguaLab
 
-This repository is a minimal, generic micro-app template built with Streamlit.
-It preserves a simple architecture intended to be easy to adapt for any
-API-driven micro-application.
+LinguaLab is a lightweight Streamlit demo for language intelligence workflows across writing analytics, tone/style, literary analysis, linguistics, corpus exploration, word study, and AI-assisted rewriting.
 
-Contents
-- app.py — Streamlit entrypoint that gathers minimal user inputs and calls api_client.fetch_data()
-- api_client.py — API client module with a `make_request()` helper and a minimal `fetch_data()` example
-- ui.py — UI layout module that renders data using Streamlit
-- config/ — configuration module with placeholder settings
-- requirements.txt — minimal dependencies
+## Features
 
-Quick start
-1. Install dependencies
-   pip install -r requirements.txt
+- **Writing Analytics**: readability, vocabulary richness, grammar hints, sentence complexity, passive voice estimate
+- **Tone and Style Analysis**: formality score, sentiment, emotional tone, audience suitability
+- **Literary Analysis**: literary devices, theme extraction, character co-occurrence mapping, narrative structure summary
+- **Linguistics Lab**: morphology tags, syntax tagging, pseudo-dependency trees, IPA-like transcription, etymology hints
+- **Corpus Analysis**: multi-document comparison, n-grams, topic buckets, keyword extraction, lexical diversity metrics
+- **Word Explorer**: definitions, synonyms, semantic relationships, examples, historical language notes
+- **AI Language Workbench**: summarisation, simplification, tone transformation, rewriting, translation comparison
+- **SQLite history**: persists module runs for quick recall in the UI
 
-2. Run locally
-   streamlit run app.py
+## Architecture
 
-Using the template
-- The primary integration point is api_client.fetch_data(). Replace the placeholder
-  implementation with calls to your API, including authentication, pagination,
-  and error handling. Keep fetch_data() independent of Streamlit so it remains
-  testable and reusable.
+```mermaid
+flowchart TD
+    UI[Streamlit app.py] --> SVC[LinguaLabService]
+    SVC --> MOD1[Writing Module]
+    SVC --> MOD2[Tone & Style Module]
+    SVC --> MOD3[Literary Module]
+    SVC --> MOD4[Linguistics Module]
+    SVC --> MOD5[Corpus Module]
+    SVC --> MOD6[Word Explorer Module]
+    SVC --> MOD7[AI Workbench Module]
+    SVC --> DB[(SQLite analysis_history)]
+    MOD7 --> OAI[OpenAI / Azure OpenAI Optional]
+    MOD1 --> NLP[spaCy + NLTK helpers]
+    MOD2 --> NLP
+    MOD3 --> NLP
+    MOD4 --> NLP
+    MOD5 --> NLP
+```
 
-- config/settings.py contains default values for API_BASE_URL and API_KEY. You
-  can set these using environment variables or provide values at runtime via
-  the Streamlit app input fields.
+## Project Structure
 
-- ui.py contains simple rendering logic with Streamlit. Modify or replace it to
-  match your UI needs (components, layout, charts, etc.).
+- `/app.py` Streamlit entrypoint and responsive UI
+- `/linguolab/` modular analysis package
+  - `services.py` orchestration layer
+  - `db.py` SQLite persistence
+  - `openai_client.py` OpenAI/Azure OpenAI integration
+  - `modules/` domain modules
+- `/tests/` unit tests
+- `/.github/workflows/ci.yml` GitHub Actions CI
 
-How to plug in a new API
-1. Update config/settings.py or set environment variables:
-   - API_BASE_URL: base URL for your API
-   - API_KEY: optional API key (alternatively, prompt users for the key in the UI)
+## Setup
 
-2. Implement the API calls in api_client.fetch_data() (or add helper functions):
-   - Use the make_request() helper for consistent URL building and timeouts
-   - Add authentication (bearer tokens, API keys, custom headers) as needed
-   - Parse and return a plain Python dict with a shape the UI expects
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
 
-3. Adjust the UI (ui.py) and app behavior (app.py) to pass parameters and show
-   the results in a user-friendly way.
+## Configuration
 
-Extending the template
-- Add tests for api_client.fetch_data() and UI rendering logic.
-- Add a Dockerfile or GitHub Actions workflow for CI and deployment.
-- Replace the placeholder items with richer domain models and components.
+Environment variables:
 
-License
-Add a LICENSE file appropriate for your project.
+- `LINGUALAB_DB_PATH` (default: `lingualab.db`)
+- `LINGUALAB_AI_PROVIDER` (`auto`, `openai`, or `azure`; default: `auto`)
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL` (default: `gpt-4o-mini`)
+- `AZURE_OPENAI_ENDPOINT`
+- `AZURE_OPENAI_API_KEY`
+- `AZURE_OPENAI_API_VERSION` (default: `2024-02-01`)
+- `AZURE_OPENAI_DEPLOYMENT`
 
-Example Prompt 
+If OpenAI/Azure credentials are missing, AI Workbench uses a local low-cost demo transform.
 
--lets refactor this repo & streamlit app to work with "api and documentation link" so the end user can insert an api key on the front end and interact with the app.
+## Testing
 
-Example Prompt 2
+```bash
+pip install -r requirements-dev.txt
+pytest -q
+```
 
--Lets use this app repo "Insert App Repo link" as a reference for the streamlit UI design and repo UI design & description but dont copy the architecture or description make it relevant to the brand of the API "insert reference".
+## CI/CD
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs tests on push and pull request.
+
+## Deployment Instructions
+
+### Streamlit Community Cloud
+1. Push repository to GitHub.
+2. Create a new Streamlit Cloud app pointing to `app.py`.
+3. Add secrets/environment variables for OpenAI or Azure OpenAI (optional).
+4. Deploy.
+
+### Self-hosted
+1. Install Python 3.11+.
+2. Install dependencies with `pip install -r requirements.txt`.
+3. Run with `streamlit run app.py --server.port 8501`.
+4. Reverse-proxy with Nginx or Caddy if needed.
