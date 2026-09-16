@@ -70,8 +70,8 @@ class LinguaLabService:
                 if isinstance(model_result, dict):
                     result.update(model_result)
                     result["provider"] = "openai"
-            except Exception:
-                pass
+            except (RuntimeError, ValueError, TypeError, KeyError) as exc:
+                result["provider_error"] = str(exc)
 
         self._save("ai_language_workbench", text, result)
         return result

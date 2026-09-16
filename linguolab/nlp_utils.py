@@ -11,6 +11,7 @@ import spacy
 
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 _WORD = re.compile(r"[A-Za-z']+")
+_NLP = spacy.blank("en")
 
 
 def ensure_nltk_resource(path: str, package: str) -> None:
@@ -60,8 +61,7 @@ def _count_syllables(word: str) -> int:
 
 
 def spacy_doc(text: str):
-    nlp = spacy.blank("en")
-    return nlp(text)
+    return _NLP(text)
 
 
 def pos_tag_tokens(text: str) -> list[tuple[str, str]]:

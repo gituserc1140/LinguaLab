@@ -42,11 +42,19 @@ def test_completion_uses_openai(monkeypatch):
 
 
 def test_completion_uses_azure(monkeypatch):
-    fake_module = types.SimpleNamespace(OpenAI=lambda api_key: _Client("ok"), AzureOpenAI=lambda **kwargs: _Client("azure"))
+    captured = {}
+
+    def _azure(**kwargs):
+        captured.update(kwargs)
+        return _Client("azure")
+
+    fake_module = types.SimpleNamespace(OpenAI=lambda api_key: _Client("ok"), AzureOpenAI=_azure)
     monkeypatch.setitem(__import__("sys").modules, "openai", fake_module)
     monkeypatch.setattr(oc.settings, "openai_api_key", None)
     monkeypatch.setattr(oc.settings, "azure_openai_endpoint", "https://example.azure.com")
     monkeypatch.setattr(oc.settings, "azure_openai_api_key", "k")
+    monkeypatch.setattr(oc.settings, "azure_openai_api_version", "2024-02-01")
     monkeypatch.setattr(oc.settings, "azure_openai_deployment", "dep")
 
     assert oc.completion("hi") == "azure"
+    assert captured["api_version"] == "2024-02-01"

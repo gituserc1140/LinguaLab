@@ -11,6 +11,9 @@ from linguolab import nlp_utils
 
 
 def analyze(documents: list[str], ngram_size: int = 2) -> dict:
+    if ngram_size < 1:
+        raise ValueError("ngram_size must be >= 1")
+
     cleaned_docs = [d for d in documents if d.strip()]
     if not cleaned_docs:
         return {
@@ -69,6 +72,9 @@ def _comparison(documents: list[str]) -> list[dict]:
 
 
 def _ngrams(documents: list[str], n: int) -> list[tuple[str, int]]:
+    if n < 1:
+        return []
+
     counter = Counter()
     for doc in documents:
         tokens = nlp_utils.words(doc)
