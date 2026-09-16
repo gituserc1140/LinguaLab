@@ -65,12 +65,12 @@ class LinguaLabService:
                     "Return JSON with keys summarisation, simplification, tone_transformation, "
                     "rewriting, translation_comparison for this text:\n" + text
                 )
-                completion = openai_client.completion(prompt)
+                completion = openai_client.completion(prompt, provider="auto")
                 model_result = json.loads(completion)
                 if isinstance(model_result, dict):
                     result.update(model_result)
                     result["provider"] = "openai"
-            except (RuntimeError, ValueError, TypeError, KeyError) as exc:
+            except (RuntimeError, ValueError, TypeError, KeyError, ImportError, ModuleNotFoundError) as exc:
                 result["provider_error"] = str(exc)
 
         self._save("ai_language_workbench", text, result)

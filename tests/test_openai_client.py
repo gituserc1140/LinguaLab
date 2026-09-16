@@ -22,6 +22,7 @@ class _Client:
 
 
 def test_available_flags(monkeypatch):
+    monkeypatch.setattr(oc.settings, "ai_provider", "auto")
     monkeypatch.setattr(oc.settings, "openai_api_key", None)
     monkeypatch.setattr(oc.settings, "azure_openai_endpoint", None)
     monkeypatch.setattr(oc.settings, "azure_openai_api_key", None)
@@ -34,6 +35,7 @@ def test_available_flags(monkeypatch):
 
 def test_completion_uses_openai(monkeypatch):
     fake_module = types.SimpleNamespace(OpenAI=lambda api_key: _Client("ok"), AzureOpenAI=lambda **kwargs: _Client("azure"))
+    monkeypatch.setattr(oc.settings, "ai_provider", "openai")
     monkeypatch.setattr(oc.settings, "openai_api_key", "k")
     monkeypatch.setattr(oc.settings, "azure_openai_endpoint", None)
     monkeypatch.setitem(__import__("sys").modules, "openai", fake_module)
@@ -50,6 +52,7 @@ def test_completion_uses_azure(monkeypatch):
 
     fake_module = types.SimpleNamespace(OpenAI=lambda api_key: _Client("ok"), AzureOpenAI=_azure)
     monkeypatch.setitem(__import__("sys").modules, "openai", fake_module)
+    monkeypatch.setattr(oc.settings, "ai_provider", "azure")
     monkeypatch.setattr(oc.settings, "openai_api_key", None)
     monkeypatch.setattr(oc.settings, "azure_openai_endpoint", "https://example.azure.com")
     monkeypatch.setattr(oc.settings, "azure_openai_api_key", "k")

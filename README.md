@@ -57,6 +57,7 @@ streamlit run app.py
 Environment variables:
 
 - `LINGUALAB_DB_PATH` (default: `lingualab.db`)
+- `LINGUALAB_AI_PROVIDER` (`auto`, `openai`, or `azure`; default: `auto`)
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL` (default: `gpt-4o-mini`)
 - `AZURE_OPENAI_ENDPOINT`

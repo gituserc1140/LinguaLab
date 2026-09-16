@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Settings:
     app_name: str = "LinguaLab"
+    ai_provider: str = field(default_factory=lambda: os.getenv("LINGUALAB_AI_PROVIDER", "auto"))
     sqlite_path: str = field(default_factory=lambda: os.getenv("LINGUALAB_DB_PATH", "lingualab.db"))
     openai_api_key: str | None = field(default_factory=lambda: os.getenv("OPENAI_API_KEY"))
     openai_model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-4o-mini"))

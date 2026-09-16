@@ -7,14 +7,29 @@ from typing import Any
 from linguolab.config import settings
 
 
-def available() -> bool:
-    return bool(settings.openai_api_key) or bool(
+def _azure_configured() -> bool:
+    return bool(
         settings.azure_openai_endpoint and settings.azure_openai_api_key and settings.azure_openai_deployment
     )
 
 
-def completion(prompt: str) -> str:
-    if settings.azure_openai_endpoint and settings.azure_openai_api_key and settings.azure_openai_deployment:
+def _openai_configured() -> bool:
+    return bool(settings.openai_api_key)
+
+
+def available(provider: str = "auto") -> bool:
+    selected = _resolve_provider(provider)
+    if selected == "azure":
+        return _azure_configured()
+    if selected == "openai":
+        return _openai_configured()
+    return _openai_configured() or _azure_configured()
+
+
+def completion(prompt: str, provider: str = "auto") -> str:
+    selected = _resolve_provider(provider)
+
+    if selected == "azure" and _azure_configured():
         from openai import AzureOpenAI
 
         client = AzureOpenAI(
@@ -29,7 +44,7 @@ def completion(prompt: str) -> str:
         )
         return _content(response)
 
-    if settings.openai_api_key:
+    if selected == "openai" and _openai_configured():
         from openai import OpenAI
 
         client = OpenAI(api_key=settings.openai_api_key)
@@ -40,7 +55,22 @@ def completion(prompt: str) -> str:
         )
         return _content(response)
 
+    if selected == "auto":
+        if _azure_configured():
+            return completion(prompt, provider="azure")
+        if _openai_configured():
+            return completion(prompt, provider="openai")
+
     raise RuntimeError("No OpenAI or Azure OpenAI credentials configured.")
+
+
+def _resolve_provider(provider: str) -> str:
+    selected = (provider or "auto").lower()
+    if selected == "auto":
+        selected = (settings.ai_provider or "auto").lower()
+    if selected not in {"auto", "openai", "azure"}:
+        raise ValueError("provider must be one of: auto, openai, azure")
+    return selected
 
 
 def _content(response: Any) -> str:
