@@ -69,7 +69,16 @@ class LinguaLabService:
                 completion = openai_client.completion(prompt, provider=provider)
                 model_result = json.loads(completion)
                 if isinstance(model_result, dict):
-                    result.update(model_result)
+                    allowed_keys = {
+                        "summarisation",
+                        "simplification",
+                        "tone_transformation",
+                        "rewriting",
+                        "translation_comparison",
+                    }
+                    for key in allowed_keys:
+                        if key in model_result:
+                            result[key] = model_result[key]
                     result["provider"] = provider
             except (RuntimeError, ValueError, TypeError, KeyError, ImportError, ModuleNotFoundError) as exc:
                 result["provider_error"] = str(exc)

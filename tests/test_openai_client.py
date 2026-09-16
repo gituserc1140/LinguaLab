@@ -76,3 +76,21 @@ def test_resolve_runtime_provider_prefers_configured_backend(monkeypatch):
     monkeypatch.setattr(oc.settings, "azure_openai_api_key", "k")
     monkeypatch.setattr(oc.settings, "azure_openai_deployment", "dep")
     assert oc.resolve_runtime_provider("auto") == "azure"
+
+
+def test_resolve_runtime_provider_uses_openai_when_only_openai_configured(monkeypatch):
+    monkeypatch.setattr(oc.settings, "ai_provider", "auto")
+    monkeypatch.setattr(oc.settings, "openai_api_key", "k")
+    monkeypatch.setattr(oc.settings, "azure_openai_endpoint", None)
+    monkeypatch.setattr(oc.settings, "azure_openai_api_key", None)
+    monkeypatch.setattr(oc.settings, "azure_openai_deployment", None)
+    assert oc.resolve_runtime_provider("auto") == "openai"
+
+
+def test_resolve_runtime_provider_returns_auto_when_unconfigured(monkeypatch):
+    monkeypatch.setattr(oc.settings, "ai_provider", "auto")
+    monkeypatch.setattr(oc.settings, "openai_api_key", None)
+    monkeypatch.setattr(oc.settings, "azure_openai_endpoint", None)
+    monkeypatch.setattr(oc.settings, "azure_openai_api_key", None)
+    monkeypatch.setattr(oc.settings, "azure_openai_deployment", None)
+    assert oc.resolve_runtime_provider("auto") == "auto"

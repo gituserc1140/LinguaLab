@@ -79,6 +79,7 @@ def etymology_lookup(word: str) -> str:
     if w in ETYMOLOGY_LOOKUP:
         return ETYMOLOGY_LOOKUP[w]
     try:
+        nlp_utils.ensure_nltk_resource("corpora/wordnet", "wordnet")
         synsets = wordnet.synsets(w)
         if synsets:
             return f"WordNet gloss: {synsets[0].definition()}"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from nltk.corpus import wordnet
 
+from linguolab import nlp_utils
 from linguolab.modules.linguistics import etymology_lookup
 
 
@@ -19,6 +20,7 @@ def explore(word: str) -> dict:
         }
 
     try:
+        nlp_utils.ensure_nltk_resource("corpora/wordnet", "wordnet")
         synsets = wordnet.synsets(target)
     except LookupError:
         synsets = []

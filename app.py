@@ -35,13 +35,17 @@ with st.sidebar:
 if st.session_state["theme"] == "Ocean":
     st.markdown("""
     <style>
-    .stApp { background: linear-gradient(180deg, #f5fbff 0%, #eef6ff 100%); }
+    .stApp { background: linear-gradient(180deg, #f5fbff 0%, #eef6ff 100%); color: #0b1f33; }
+    .stApp [data-testid="stHeader"] { background: transparent; }
+    .stApp [data-testid="stSidebar"] { background: #e6f2ff; color: #0b1f33; }
     </style>
     """, unsafe_allow_html=True)
 elif st.session_state["theme"] == "Mono":
     st.markdown("""
     <style>
-    .stApp { background: #f6f6f6; }
+    .stApp { background: #f6f6f6; color: #1f1f1f; }
+    .stApp [data-testid="stHeader"] { background: transparent; }
+    .stApp [data-testid="stSidebar"] { background: #ebebeb; color: #1f1f1f; }
     </style>
     """, unsafe_allow_html=True)
 
